@@ -17,48 +17,53 @@ defmodule Transport.DataValidation.Aggregates.ProjectTest do
   end
 
   test "find a project" do
-    assert {:reply, {:ok, project}, project} = Project.handle_call({:find_project}, nil, %Project{id: "1"})
+    project = %Project{id: "1"}
+    assert {:reply, {:ok, ^project}, ^project} = Project.handle_call({:find_project}, nil, project)
   end
 
   describe "create a project" do
     test "when the project does not exist it creates it" do
       use_cassette "data_validation/aggregates/project/create_project" do
+        project = %Project{id: nil}
         command = %CreateProject{name: "transport"}
-        assert {:noreply, project} = Project.handle_cast({:create_project, command}, %Project{id: nil})
+        assert {:noreply, project} = Project.handle_cast({:create_project, command}, project)
         refute is_nil(project.id)
       end
     end
 
     test "when the project already exists it serves it from memory" do
+      project = %Project{id: "1"}
       command = %CreateProject{name: "transport"}
-      assert {:noreply, project} = Project.handle_cast({:create_project, command}, %Project{id: "1"})
-      assert project.id == "1"
+      assert {:noreply, ^project} = Project.handle_cast({:create_project, command}, project)
     end
 
     test "when the API is not available it fails" do
+      project = %Project{id: nil}
       command = %CreateProject{name: "transport"}
-      assert {:stop, :econnrefused, _} = Project.handle_cast({:create_project, command}, %Project{id: nil})
+      assert {:stop, :econnrefused, ^project} = Project.handle_cast({:create_project, command}, project)
     end
   end
 
   test "validate a feed version" do
+    project = %Project{id: "1"}
     command = %ValidateFeedVersion{id: "1"}
-    assert {:noreply, project} = Project.handle_cast({:validate_feed_version, command}, %Project{id: "1"})
-    assert project.id == "1"
+    assert {:noreply, ^project} = Project.handle_cast({:validate_feed_version, command}, project)
   end
 
   describe "populate project" do
     test "it calls the API to retrieve the project" do
       use_cassette "data_validation/aggregates/project/populate_project" do
-        query = %FindProject{name: "transport"}
-        assert {:noreply, project} = Project.handle_cast({:populate_project, query}, %Project{})
+        project = %Project{}
+        query   = %FindProject{name: "transport"}
+        assert {:noreply, project} = Project.handle_cast({:populate_project, query}, project)
         refute is_nil(project.id)
       end
     end
 
     test "when the API is not available it fails" do
-      query = %FindProject{name: "transport"}
-      assert {:stop, :econnrefused, _} = Project.handle_cast({:populate_project, query}, %Project{})
+      project = %Project{}
+      query   = %FindProject{name: "transport"}
+      assert {:stop, :econnrefused, ^project} = Project.handle_cast({:populate_project, query}, project)
     end
   end
 end
