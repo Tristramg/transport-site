@@ -52,7 +52,7 @@ defmodule Transport.DataValidation.Aggregates.Project do
   end
 
   def handle_cast({:create_project, %CreateProject{} = command}, %__MODULE__{id: nil} = project) do
-    case ProjectRepository.create(command) do
+    case ProjectRepository.execute(command) do
       {:ok, project} -> {:noreply, project}
       {:error, error} -> {:stop, error, project}
     end
@@ -67,7 +67,7 @@ defmodule Transport.DataValidation.Aggregates.Project do
   end
 
   def handle_cast({:populate_project, %FindProject{} = query}, %__MODULE__{} = project) do
-    case ProjectRepository.find(query) do
+    case ProjectRepository.execute(query) do
       {:ok, nil} -> {:noreply, project}
       {:ok, project} -> {:noreply, project}
       {:error, error} -> {:stop, error, project}
