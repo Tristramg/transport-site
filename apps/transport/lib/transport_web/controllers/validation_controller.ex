@@ -7,12 +7,13 @@ defmodule TransportWeb.ValidationController do
   @err HTTPoison.Error
   @timeout 180_000
 
+  @spec endpoint :: binary()
   defp endpoint, do: Application.get_env(:transport, :gtfs_validator_url) <> "/validate"
 
-  def index(%Plug.Conn{} = conn, _) do
-    render(conn, "index.html")
-  end
+  @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def index(%Plug.Conn{} = conn, _), do: render(conn, "index.html")
 
+  @spec validate(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def validate(%Plug.Conn{} = conn, %{"upload" => upload_params}) do
     with {:ok, gtfs} <- File.read(upload_params["file"].path),
          {:ok, %@res{status_code: 200, body: body}} <- @client.post(endpoint(), gtfs, [], recv_timeout: @timeout),
@@ -37,6 +38,7 @@ defmodule TransportWeb.ValidationController do
     end
   end
 
+  @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(%Plug.Conn{} = conn, %{} = params) do
     config = make_pagination_config(params)
     validation = Repo.get(Validation, params["id"])

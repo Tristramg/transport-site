@@ -7,10 +7,12 @@ defmodule TransportWeb.SessionController do
   alias Datagouvfr.{Authentication, Client.User}
   require Logger
 
+  @spec new(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def new(conn, _) do
     redirect(conn, external: Authentication.authorize_url())
   end
 
+  @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"code" => code}) do
     with %{token: token} <- Authentication.get_token!(code: code),
          conn <-
@@ -42,6 +44,7 @@ defmodule TransportWeb.SessionController do
     |> halt()
   end
 
+  @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, _) do
     conn
     |> configure_session(drop: true)
@@ -51,6 +54,7 @@ defmodule TransportWeb.SessionController do
 
   # private functions
 
+  @spec user_params(map()) :: map()
   defp user_params(%{} = user) do
     params =
       Map.take(
@@ -59,14 +63,14 @@ defmodule TransportWeb.SessionController do
       )
 
     filtered_organizations =
-      Enum.filter(
-        Map.get(params, "organizations", []),
-        fn org -> org["slug"] == "equipe-transport-data-gouv-fr" end
-      )
+      params
+      |> Map.get("organizations", [])
+      |> Enum.filter(fn org -> org["slug"] == "equipe-transport-data-gouv-fr" end)
 
     Map.put(params, "organizations", filtered_organizations)
   end
 
+  @spec get_redirect_path(Plug.Conn.t()) :: binary()
   defp get_redirect_path(conn) do
     case get_session(conn, :redirect_path) do
       nil -> "/"

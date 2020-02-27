@@ -28,6 +28,7 @@ defmodule TransportWeb.ResourceController do
     end
   end
 
+  @spec choose_action(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def choose_action(conn, _), do: render(conn, "choose_action.html")
 
   @spec datasets_list(Plug.Conn.t(), any()) :: Plug.Conn.t()
@@ -93,6 +94,7 @@ defmodule TransportWeb.ResourceController do
     end
   end
 
+  @spec assign_or_flash(Plug.Conn.t(), (() -> {:error, any()} | {:ok, any()}), atom(), binary()) :: Plug.Conn.t()
   defp assign_or_flash(conn, getter, kw, error) do
     case getter.() do
       {:ok, value} ->

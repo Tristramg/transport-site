@@ -32,8 +32,8 @@ defmodule TransportWeb.StatsController do
       nb_regions_completed: regions |> Enum.count(fn r -> r.is_completed end),
       population_totale: get_population(aoms),
       population_couverte: get_population(aoms_with_datasets),
-      nb_officical_realtime: nb_officical_realtime(),
-      nb_unofficical_realtime: nb_unofficical_realtime(),
+      nb_official_realtime: nb_official_realtime(),
+      nb_unofficial_realtime: nb_unofficial_realtime(),
       nb_reusers: nb_reusers(),
       nb_reuses: nb_reuses(),
       nb_dataset_types: nb_dataset_types(),
@@ -45,6 +45,7 @@ defmodule TransportWeb.StatsController do
     )
   end
 
+  @spec get_population([Dataset.t()]) :: number()
   defp get_population(datasets) do
     datasets
     |> Enum.reduce(0, &(&1.population + &2))
@@ -52,7 +53,8 @@ defmodule TransportWeb.StatsController do
     |> Float.round(2)
   end
 
-  defp nb_officical_realtime do
+  @spec nb_official_realtime :: number()
+  defp nb_official_realtime do
     rt_datasets =
       from(d in Dataset,
         where: d.has_realtime
@@ -71,24 +73,23 @@ defmodule TransportWeb.StatsController do
     Repo.aggregate(bikes_datasets, :count, :id)
   end
 
-  defp nb_unofficical_realtime do
-    Enum.count(CSVDocuments.real_time_providers())
-  end
+  @spec nb_unofficial_realtime :: number()
+  defp nb_unofficial_realtime, do: Enum.count(CSVDocuments.real_time_providers())
 
+  @spec nb_dataset_types :: number()
   defp nb_dataset_types do
     Dataset
     |> select([d], count(d.type, :distinct))
     |> Repo.one()
   end
 
-  defp nb_reusers do
-    Enum.count(CSVDocuments.reusers())
-  end
+  @spec nb_reusers :: number()
+  defp nb_reusers, do: Enum.count(CSVDocuments.reusers())
 
-  defp nb_reuses do
-    Repo.aggregate(Dataset, :sum, :nb_reuses)
-  end
+  @spec nb_reuses :: number()
+  defp nb_reuses, do: Repo.aggregate(Dataset, :sum, :nb_reuses)
 
+  @spec count_dataset_with_format(binary()) :: number()
   defp count_dataset_with_format(format) do
     Resource
     |> select([r], count(r.dataset_id, :distinct))

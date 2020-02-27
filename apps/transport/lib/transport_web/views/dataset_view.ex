@@ -6,8 +6,10 @@ defmodule TransportWeb.DatasetView do
   alias TransportWeb.Router.Helpers
   import Phoenix.Controller, only: [current_path: 1, current_url: 2]
 
+  @spec render_sidebar_from_type(any, Dataset.t()) :: Plug.Conn.t()
   def render_sidebar_from_type(conn, dataset), do: render_panel_from_type(conn, dataset, "sidebar")
 
+  @spec render_panel_from_type(Plug.Conn.t(), Dataset.t(), binary()) :: Plug.Conn.t()
   def render_panel_from_type(conn, dataset, panel_type) do
     render_existing(
       TransportWeb.DatasetView,
@@ -17,6 +19,7 @@ defmodule TransportWeb.DatasetView do
     )
   end
 
+  @spec format_date(binary()) :: binary()
   def format_date(nil), do: ""
 
   def format_date(date) do
@@ -25,15 +28,18 @@ defmodule TransportWeb.DatasetView do
     |> Timex.format!("{0D}/{0M}/{YYYY}")
   end
 
+  @spec get_name(map()) :: binary()
   def get_name(%{"organization" => organization}), do: organization["name"]
   def get_name(%{"owner" => owner}), do: owner["first_name"] <> " " <> owner["last_name"]
 
+  @spec first_gtfs(DB.Dataset.t()) :: any
   def first_gtfs(dataset) do
     dataset
     |> Dataset.valid_gtfs()
     |> List.first()
   end
 
+  @spec end_date(DB.Dataset.t()) :: binary()
   def end_date(dataset) do
     dataset
     |> Dataset.valid_gtfs()
@@ -51,6 +57,7 @@ defmodule TransportWeb.DatasetView do
     end
   end
 
+  @spec pagination_links(Plug.Conn.t(), any()) :: binary()
   def pagination_links(%{path_info: ["datasets", "region", region]} = conn, datasets) do
     kwargs = [path: &Helpers.dataset_path/4, action: :by_region] |> add_order_by(conn.params)
 
@@ -73,10 +80,9 @@ defmodule TransportWeb.DatasetView do
     )
   end
 
-  def pagination_links(conn, paginator) do
-    PaginationHelpers.pagination_links(conn, paginator)
-  end
+  def pagination_links(conn, paginator), do: PaginationHelpers.pagination_links(conn, paginator)
 
+  @spec order_link(Plug.Conn.t(), any()) :: any()
   def order_link(conn, order_by) do
     msg =
       %{
@@ -90,6 +96,7 @@ defmodule TransportWeb.DatasetView do
     end
   end
 
+  @spec region_link(Plug.Conn.t(), any()) :: any()
   def region_link(conn, region) do
     region_id = Integer.to_string(region.id)
 
@@ -105,6 +112,7 @@ defmodule TransportWeb.DatasetView do
     end
   end
 
+  @spec area_type_link(Plug.Conn.t(), any()) :: any()
   def area_type_link(conn, zone_type) do
     msg =
       %{
@@ -118,6 +126,7 @@ defmodule TransportWeb.DatasetView do
     end
   end
 
+  @spec type_link(Plug.Conn.t(), any()) :: any()
   def type_link(conn, %{type: type, msg: msg}) do
     case conn.params do
       %{"type" => ^type} -> ~E"<span class=\"activefilter\"><%= msg %></span>"
@@ -125,6 +134,7 @@ defmodule TransportWeb.DatasetView do
     end
   end
 
+  @spec icon_type_path(Dataset.t()) :: binary() | nil
   def icon_type_path(%{type: type}) do
     case type do
       "public-transit" -> "/images/icons/bus.svg"
@@ -138,9 +148,11 @@ defmodule TransportWeb.DatasetView do
     end
   end
 
+  @spec display_all_regions_links?(%{params: map()}) :: boolean()
   def display_all_regions_links?(%{params: %{"region" => region}}) when not is_nil(region), do: true
   def display_all_regions_links?(_), do: false
 
+  @spec display_all_types_links?(%{params: map()}) :: boolean()
   def display_all_types_links?(%{params: %{"type" => type}}) when not is_nil(type), do: true
   def display_all_types_links?(_), do: false
 
